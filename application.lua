@@ -18,11 +18,13 @@ function app:start()
     logger.info("Application start")
 
     function love.update(dt)
-        self.update(dt)
+        self.update(self.mode, dt)
     end
 
     function love.draw()
-        self.draw()
+        if love.window.isVisible() then
+            self.draw(self.mode)
+        end
     end
 end
 

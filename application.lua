@@ -33,6 +33,7 @@ function app:mode(mode)
     self.mode = mode
     self.update = mode.update
     self.draw = mode.draw
+    mode:start()
 end
 
 return app

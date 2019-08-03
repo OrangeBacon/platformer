@@ -34,18 +34,18 @@ function titlescreen:draw()
 
 end
 
-function love.keypressed(key)
+function titlescreen:keypressed(key)
     if key == 'escape' then
         love.event.quit()
     end
 end
 
-function love.keyreleased(key)
-    if key == 'down' and titlescreen.selected < #titlescreen.options then
-        titlescreen.selected = titlescreen.selected + 1
+function titlescreen:keyreleased(key)
+    if key == 'down' and self.selected < #self.options then
+        self.selected = self.selected + 1
     end
-    if key == 'up' and titlescreen.selected > 1 then
-        titlescreen.selected = titlescreen.selected - 1
+    if key == 'up' and self.selected > 1 then
+        self.selected = self.selected - 1
     end
 end
 

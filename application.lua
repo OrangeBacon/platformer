@@ -32,6 +32,10 @@ function app:start()
     function love.keyreleased(key)
         self.keyreleased(self.mode, key)
     end
+
+    function love.resize(w, h)
+        self.resize(self.mode, w, h)
+    end
 end
 
 function app:mode(mode)
@@ -60,6 +64,12 @@ function app:mode(mode)
         self.keyreleased = mode.keyreleased
     else
         self.keyreleased = function() end
+    end
+
+    if mode.resize ~= nil then
+        self.resize = mode.resize
+    else
+        self.resize = function() end
     end
 
     mode:start()

@@ -25,9 +25,19 @@ function titlescreen:draw()
     love.graphics.rectangle("fill", 10, 10, love.graphics.getWidth() - 20, love.graphics.getHeight() - 20, 10)
     love.graphics.draw(self.title, self.titleX, 40, 0, self.titleScale)
 
+    local mouseX = love.mouse.getX()
+    local mouseY = love.mouse.getY()
+    local center = love.graphics.getWidth() / 2
+
     local y = self.titleHeight + 80
     for i,v in ipairs(self.options) do
-        if i == self.selected then
+        if mouseY < y + 30 and mouseY > y - 10 and mouseX < center + 100 and mouseX > center - 100 then
+            if love.mouse.isDown(1) then
+                love.graphics.setColor(0, 0, 1)
+            else
+                love.graphics.setColor(0, 1, 1)
+            end
+        elseif i == self.selected then
             love.graphics.setColor(0, 1, 0)
         else
             love.graphics.setColor(1, 1, 1)
@@ -46,14 +56,28 @@ end
 function titlescreen:keyreleased(key)
     if key == 'down' and self.selected < #self.options then
         self.selected = self.selected + 1
-    end
-    if key == 'up' and self.selected > 1 then
+    elseif key == 'up' and self.selected > 1 then
         self.selected = self.selected - 1
+    elseif key == 'return' then
+        self:selectOption(self.options[self.selected])
     end
 end
 
 function titlescreen:resize(w, h)
     self:scale()
+end
+
+function titlescreen:mousereleased(mouseX, mouseY)
+    local center = love.graphics.getWidth() / 2
+    local y = self.titleHeight + 80
+    
+    for _, v in ipairs(self.options) do
+        if mouseY < y + 30 and mouseY > y - 10 and mouseX < center + 100 and mouseX > center - 100 then
+            self:selectOption(v)
+            return
+        end
+        y = y + 40
+    end
 end
 
 function titlescreen:scale()
@@ -65,6 +89,10 @@ function titlescreen:scale()
     self.titleHeight = math.ceil(self.title:getHeight() * sf)
     self.titleX = math.ceil((love.graphics.getWidth() - (self.title:getWidth() * sf)) / 2)
     self.titleScale = sf
+end
+
+function titlescreen:selectOption(opt)
+    print(opt)
 end
 
 return titlescreen

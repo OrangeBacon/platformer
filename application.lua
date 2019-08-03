@@ -2,6 +2,14 @@ local logger = require "logger"
 local app = {
     mode = {
         name = "NONE"
+    },
+    functions = {
+        "update",
+        "draw",
+        "keypressed",
+        "keyreleased",
+        "resize",
+        "mousereleased"
     }
 }
 
@@ -15,26 +23,18 @@ end
 function app:start()
     logger.info("Application start")
 
-    function love.update(dt)
-        self.update(self.mode, dt)
-    end
-
-    function love.draw()
-        if love.window.isVisible() then
-            self.draw(self.mode)
+    for _, name in ipairs(self.functions) do
+        if name == "draw" then
+            love[name] = function()
+                if love.window.isVisible() then
+                    self[name](self.mode)
+                end
+            end
+        else
+            love[name] = function(...)
+                self[name](self.mode, ...)
+            end
         end
-    end
-
-    function love.keypressed(key)
-        self.keypressed(self.mode, key)
-    end
-
-    function love.keyreleased(key)
-        self.keyreleased(self.mode, key)
-    end
-
-    function love.resize(w, h)
-        self.resize(self.mode, w, h)
     end
 end
 
@@ -42,34 +42,12 @@ function app:mode(mode)
     logger.info("Mode Change: " .. mode.name)
     self.mode = mode
 
-    if mode.update ~= nil then
-        self.update = mode.update
-    else
-        self.update = function() end
-    end
-
-    if mode.draw ~= nil then
-        self.draw = mode.draw
-    else
-        self.draw = function() end
-    end
-
-    if mode.keypressed ~= nil then
-        self.keypressed = mode.keypressed
-    else
-        self.keypressed = function() end
-    end
-
-    if mode.keyreleased ~= nil then
-        self.keyreleased = mode.keyreleased
-    else
-        self.keyreleased = function() end
-    end
-
-    if mode.resize ~= nil then
-        self.resize = mode.resize
-    else
-        self.resize = function() end
+    for _, name in ipairs(self.functions) do
+        if mode[name] ~= nil then
+            self[name] = mode[name]
+        else
+            self[name] = function() end
+        end
     end
 
     mode:start()

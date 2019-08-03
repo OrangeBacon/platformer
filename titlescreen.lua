@@ -10,7 +10,7 @@ local titlescreen = {
 
 function titlescreen:start()
     love.graphics.setDefaultFilter("linear", "nearest")
-    self.title = love.graphics.newImage("title.png")
+    self.title = love.graphics.newImage("graphics/title.png")
     self:scale()
     love.graphics.setFont(love.graphics.newFont(20))
 end
@@ -81,7 +81,7 @@ function titlescreen:mousereleased(mouseX, mouseY)
 end
 
 function titlescreen:scale()
-    local sf = (love.graphics.getWidth() -75 ) / self.title:getWidth()
+    local sf = (love.graphics.getWidth() - 75 ) / self.title:getWidth()
     local newHeight = math.ceil(self.title:getHeight() * sf)
     if newHeight > 100 then
         sf = 100 / self.title:getHeight()

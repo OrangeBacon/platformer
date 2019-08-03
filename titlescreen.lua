@@ -92,7 +92,9 @@ function titlescreen:scale()
 end
 
 function titlescreen:selectOption(opt)
-    print(opt)
+    if opt == "Play" then
+        self.app:mode(require "maprender")
+    end
 end
 
 return titlescreen

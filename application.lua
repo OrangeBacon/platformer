@@ -27,12 +27,12 @@ function app:start()
         if name == "draw" then
             love[name] = function()
                 if love.window.isVisible() then
-                    self[name](self.mode)
+                    self[name](self.currentMode)
                 end
             end
         else
             love[name] = function(...)
-                self[name](self.mode, ...)
+                self[name](self.currentMode, ...)
             end
         end
     end
@@ -40,7 +40,8 @@ end
 
 function app:mode(mode)
     logger.info("Mode Change: " .. mode.name)
-    self.mode = mode
+    self.currentMode = mode
+    self.currentMode.app = self
 
     for _, name in ipairs(self.functions) do
         if mode[name] ~= nil then

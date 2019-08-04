@@ -23,6 +23,31 @@ function maprender:update(dt)
     if love.keyboard.isDown("left") then
         self.x = self.x + 100 * dt
     end
+
+    for _, tile in pairs(self.tiles) do
+        if tile.animation then
+            local update = false
+            tile.time = tile.time + dt * 1000
+
+            while tile.time > tile.animation[tile.frame].duration do
+                update = true
+                tile.time = tile.time - tile.animation[tile.frame].duration
+
+                tile.frame = tile.frame + 1
+                if tile.frame > #tile.animation then 
+                    tile.frame = 1 
+                end
+            end
+
+            if update and self.tileInstances[tile.gid] then
+                for _, instance in pairs(self.tileInstances[tile.gid]) do
+                    local t = self.tiles[tile.animation[tile.frame].tileid + tile.tileset.firstgid]
+                    instance.batch:set(instance.id, t.quad, instance.x, instance.y)
+                    instance.layer.isdirty = true
+                end
+            end
+        end
+    end
 end
 
 function maprender:draw()
@@ -96,6 +121,14 @@ function maprender:initialiseTilesets()
 
         for y = 1, height do
             for x = 1, width do
+
+                local animation
+                for _, tile in pairs(tileset.tiles) do
+                    if tile.id == globalId - tileset.firstgid then
+                        animation = tile.animation
+                    end
+                end
+
                 self.tiles[globalId] = {
                     gid = globalId,
                     tileset = tileset,
@@ -105,7 +138,10 @@ function maprender:initialiseTilesets()
                         tileset.imagewidth, tileset.imageheight
                     ),
                     width = tileset.tilewidth, 
-                    height = tileset.tileheight
+                    height = tileset.tileheight,
+                    animation = animation,
+                    time = 0,
+                    frame = 1
                 }
 
                 globalId = globalId + 1

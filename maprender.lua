@@ -2,18 +2,53 @@ local maprender = {
     name = "maprender",
     tiles = {},
     tileInstances = {},
+    x = 0,
+    y = 0,
 }
 
 function maprender:start()
     self:loadmap("graphics/map.lua")
 end
 
+function maprender:update(dt)
+    if love.keyboard.isDown("down") then
+        self.y = self.y - 100 * dt
+    end
+    if love.keyboard.isDown("up") then
+        self.y = self.y + 100 * dt
+    end
+    if love.keyboard.isDown("right") then
+        self.x = self.x - 100 * dt
+    end
+    if love.keyboard.isDown("left") then
+        self.x = self.x + 100 * dt
+    end
+end
+
 function maprender:draw()
     love.graphics.clear(0.5, 0.5, 0.5)
 
+    local isdirty = false
     for _, layer in ipairs(self.map.layers) do
-        layer.draw()
+        isdirty = isdirty or layer.isdirty
+        if layer.isdirty then
+            love.graphics.setCanvas(layer.canvas)
+            for _, batch in pairs(layer.batches) do
+                love.graphics.draw(batch, layer.x, layer.y)
+            end
+            layer.isdirty = false
+        end
     end
+
+    if isdirty then
+        love.graphics.setCanvas(self.canvas)
+        for _, layer in ipairs(self.map.layers) do
+            love.graphics.draw(layer.canvas, 0, 0)
+        end
+        love.graphics.setCanvas()
+    end
+
+    love.graphics.draw(self.canvas, self.x, self.y)
 end
 
 function maprender:keypressed(key)
@@ -80,6 +115,9 @@ function maprender:initialiseTilesets()
 end
 
 function maprender:initialiseLayers()
+    local maxWidth = 0
+    local maxHeight = 0
+
     for _, layer in ipairs(self.map.layers) do
         local data = {}
 
@@ -108,7 +146,7 @@ function maprender:initialiseLayers()
 
                 if tile then
                     local tileX = (x - 1) * tile.tileset.tilewidth
-                    local tileY = y * tile.tileset.tileheight
+                    local tileY = (y - 1) * tile.tileset.tileheight
                     
                     layer.batches[tile.tileset] = layer.batches[tile.tileset] or 
                         love.graphics.newSpriteBatch(tile.tileset.image, layer.height * layer.width)
@@ -133,14 +171,19 @@ function maprender:initialiseLayers()
         end
 
         self.map.layers[layer.name] = layer
-        layer.draw = function() self:drawLayer(layer) end
-    end
-end
+        layer.isdirty = true
 
-function maprender:drawLayer(layer)
-    for _, batch in pairs(layer.batches) do
-        love.graphics.draw(batch, layer.x, layer.y)
+        local pixelWidth = layer.width * self.map.tilewidth
+        local pixelHeight = layer.height * self.map.tileheight
+        layer.canvas = love.graphics.newCanvas(pixelWidth, pixelHeight)
+        layer.canvas:setFilter("nearest", "nearest")
+
+        maxWidth = math.max(maxWidth, pixelWidth)
+        maxHeight = math.max(maxHeight, pixelHeight)
     end
+
+    self.canvas = love.graphics.newCanvas(maxWidth, maxHeight)
+    self.canvas:setFilter("nearest", "nearest")
 end
 
 return maprender

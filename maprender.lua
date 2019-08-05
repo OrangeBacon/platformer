@@ -4,6 +4,7 @@ local maprender = {
     tileInstances = {},
     x = 0,
     y = 0,
+    isdirty = true
 }
 
 function maprender:start()
@@ -44,6 +45,7 @@ function maprender:update(dt)
                     local t = self.tiles[tile.animation[tile.frame].tileid + tile.tileset.firstgid]
                     instance.batch:set(instance.id, t.quad, instance.x, instance.y)
                     instance.layer.isdirty = true
+                    self.isdirty = true
                 end
             end
         end
@@ -53,24 +55,27 @@ end
 function maprender:draw()
     love.graphics.clear(0.5, 0.5, 0.5)
 
-    local isdirty = false
-    for _, layer in ipairs(self.map.layers) do
-        isdirty = isdirty or layer.isdirty
-        if layer.isdirty then
-            love.graphics.setCanvas(layer.canvas)
-            for _, batch in pairs(layer.batches) do
-                love.graphics.draw(batch, layer.x, layer.y)
-            end
-            layer.isdirty = false
-        end
-    end
-
-    if isdirty then
-        love.graphics.setCanvas(self.canvas)
+    if self.isdirty then
+        self.isdirty = false
+        local isdirty = false
         for _, layer in ipairs(self.map.layers) do
-            love.graphics.draw(layer.canvas, 0, 0)
+            isdirty = isdirty or layer.isdirty
+            if layer.isdirty then
+                love.graphics.setCanvas(layer.canvas)
+                for _, batch in pairs(layer.batches) do
+                    love.graphics.draw(batch, layer.x, layer.y)
+                end
+                layer.isdirty = false
+            end
         end
-        love.graphics.setCanvas()
+
+        if isdirty then
+            love.graphics.setCanvas(self.canvas)
+            for _, layer in ipairs(self.map.layers) do
+                love.graphics.draw(layer.canvas, 0, 0)
+            end
+            love.graphics.setCanvas()
+        end
     end
 
     love.graphics.draw(self.canvas, self.x, self.y)

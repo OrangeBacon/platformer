@@ -181,9 +181,9 @@ function maprender:initialiseLayers()
                 local tile = layer.data[y][x]
 
                 if tile then
-                    local tileX = (x - 1) * tile.tileset.tilewidth
-                    local tileY = (y - 1) * tile.tileset.tileheight
-                    
+                    local tileX = (x - 1) * self.map.tilewidth
+                    local tileY = (y - 1) * self.map.tileheight
+
                     layer.batches[tile.tileset] = layer.batches[tile.tileset] or 
                         love.graphics.newSpriteBatch(tile.tileset.image, layer.height * layer.width)
 

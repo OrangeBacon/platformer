@@ -4,7 +4,12 @@ local maprender = {
     tileInstances = {},
     x = 0,
     y = 0,
-    isdirty = true
+    w = 0,
+    h = 0,
+    isdirty = true,
+    moved = true,
+    maxWidth = 0,
+    maxHeight = 0
 }
 
 function maprender:start()
@@ -13,16 +18,20 @@ end
 
 function maprender:update(dt)
     if love.keyboard.isDown("down") then
-        self.y = self.y - 100 * dt
+        self.y = math.min(self.y + 100 * dt, self.maxHeight - self.h)
+        self.moved = true
     end
     if love.keyboard.isDown("up") then
-        self.y = self.y + 100 * dt
+        self.y = math.max(self.y - 100 * dt, 0)
+        self.moved = true
     end
     if love.keyboard.isDown("right") then
-        self.x = self.x - 100 * dt
+        self.x = math.min(self.x + 100 * dt, self.maxWidth - self.w)
+        self.moved = true
     end
     if love.keyboard.isDown("left") then
-        self.x = self.x + 100 * dt
+        self.x = math.max(self.x - 100 * dt, 0)
+        self.moved = true
     end
 
     for _, tile in pairs(self.tiles) do
@@ -53,9 +62,7 @@ function maprender:update(dt)
 end
 
 function maprender:draw()
-    love.graphics.clear(0.5, 0.5, 0.5)
-
-    if self.isdirty then
+    if self.isdirty or self.moved then
         self.isdirty = false
         local isdirty = false
         for _, layer in ipairs(self.map.layers) do
@@ -69,16 +76,17 @@ function maprender:draw()
             end
         end
 
-        if isdirty then
+        if isdirty or self.moved then
             love.graphics.setCanvas(self.canvas)
             for _, layer in ipairs(self.map.layers) do
-                love.graphics.draw(layer.canvas, 0, 0)
+                love.graphics.draw(layer.canvas, -self.x, -self.y)
             end
             love.graphics.setCanvas()
         end
+        self.moved = false
     end
 
-    love.graphics.draw(self.canvas, self.x, self.y)
+    love.graphics.draw(self.canvas, 0, 0)
 end
 
 function maprender:keypressed(key)
@@ -156,9 +164,6 @@ function maprender:initialiseTilesets()
 end
 
 function maprender:initialiseLayers()
-    local maxWidth = 0
-    local maxHeight = 0
-
     for _, layer in ipairs(self.map.layers) do
         local data = {}
 
@@ -219,12 +224,18 @@ function maprender:initialiseLayers()
         layer.canvas = love.graphics.newCanvas(pixelWidth, pixelHeight)
         layer.canvas:setFilter("nearest", "nearest")
 
-        maxWidth = math.max(maxWidth, pixelWidth)
-        maxHeight = math.max(maxHeight, pixelHeight)
+        self.maxWidth = math.max(self.maxWidth, pixelWidth)
+        self.maxHeight = math.max(self.maxHeight, pixelHeight)
     end
 
-    self.canvas = love.graphics.newCanvas(maxWidth, maxHeight)
+    self:resize(love.graphics.getWidth(), love.graphics.getHeight())
+end
+
+function maprender:resize(w, h)
+    self.canvas = love.graphics.newCanvas(w, h)
     self.canvas:setFilter("nearest", "nearest")
+    self.w = w
+    self.h = h
 end
 
 return maprender
